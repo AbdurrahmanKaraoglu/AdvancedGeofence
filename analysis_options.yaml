@@ -1,0 +1,14 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    - example/**
+    - build/**
+
+linter:
+  rules:
+    - public_member_api_docs
+    - prefer_final_locals
+
+formatter:
+  page_width: 120
