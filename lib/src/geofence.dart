@@ -1,6 +1,7 @@
 import 'geo_bounds.dart';
 import 'geo_math.dart';
 import 'geo_point.dart';
+import 'json_util.dart';
 
 /// A region to monitor: a [CircleGeofence] or a [PolygonGeofence].
 sealed class Geofence {
@@ -13,7 +14,11 @@ sealed class Geofence {
   }
 
   /// Recreates a geofence from [toJson] output.
-  factory Geofence.fromJson(Map<String, Object?> json) {
+  ///
+  /// Throws a [FormatException] if [json] is malformed.
+  factory Geofence.fromJson(Map<String, Object?> json) => parseJson('geofence', () => _fromJson(json));
+
+  static Geofence _fromJson(Map<String, Object?> json) {
     final metadata = (json['metadata'] as Map?)?.cast<String, Object?>();
     final dwellMs = json['dwellMs'] as num?;
     final dwell = dwellMs == null ? null : Duration(milliseconds: dwellMs.toInt());
@@ -139,7 +144,8 @@ final class CircleGeofence extends Geofence {
 /// Edges are straight lines in latitude/longitude space and inside/outside
 /// is decided by ray casting (even-odd rule), so self-intersecting polygons
 /// have "holes" where they overlap. Polygons may cross the antimeridian but
-/// must not enclose a pole; use a [CircleGeofence] for polar regions.
+/// must not enclose a pole (use a [CircleGeofence] for polar regions), and
+/// consecutive vertices must be less than 180° of longitude apart.
 /// Distances to the boundary use a local planar approximation, which is
 /// accurate for geofences up to a few tens of kilometers.
 final class PolygonGeofence extends Geofence {
@@ -172,6 +178,9 @@ final class PolygonGeofence extends Geofence {
     winding += _wrapDelta(lngs.first - previous);
     if (winding.abs() > 180) {
       throw ArgumentError('Polygons enclosing a pole are not supported; use a CircleGeofence.');
+    }
+    if (!_hasArea(lats, lngs)) {
+      throw ArgumentError.value(vertices, 'vertices', 'all vertices are on one line; the polygon has no area');
     }
     _lats = lats;
     _lngs = lngs;
@@ -207,6 +216,22 @@ final class PolygonGeofence extends Geofence {
       }
     }
     return vertices;
+  }
+
+  /// Whether the vertices are not all on one line.
+  static bool _hasArea(List<double> lats, List<double> lngs) {
+    final x0 = lngs[0], y0 = lats[0];
+    var i = 1;
+    while (i < lats.length && lngs[i] == x0 && lats[i] == y0) {
+      i++;
+    }
+    if (i == lats.length) return false;
+    final dx = lngs[i] - x0, dy = lats[i] - y0;
+    for (var k = i + 1; k < lats.length; k++) {
+      // Cross product in degrees²; 1e-14 is far below a square centimeter.
+      if ((dx * (lats[k] - y0) - dy * (lngs[k] - x0)).abs() > 1e-14) return true;
+    }
+    return false;
   }
 
   static double _wrapDelta(double delta) {

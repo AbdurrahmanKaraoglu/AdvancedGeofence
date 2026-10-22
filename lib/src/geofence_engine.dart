@@ -168,11 +168,14 @@ class GeofenceEngine {
     if (!reading.isValid) return const ProcessResult(ignoredReason: IgnoreReason.invalid);
     final now = _clock();
     final time = reading.time ?? now;
+    final maxAge = options.maxReadingAge;
     final last = _lastPoint?.time;
-    if (last != null && !time.isAfter(last)) {
+    // A last reading far in the future of the clock (restored state after the
+    // device clock was set back) is not trusted, or nothing would be accepted.
+    final lastTrusted = last != null && (maxAge == null || !last.isAfter(now.add(maxAge)));
+    if (lastTrusted && !time.isAfter(last)) {
       return const ProcessResult(ignoredReason: IgnoreReason.outOfOrder);
     }
-    final maxAge = options.maxReadingAge;
     // Also rejects fixes from the future (a wrong device clock), which would
     // otherwise make every later reading look out of order.
     if (maxAge != null && now.difference(time).abs() > maxAge) {
@@ -317,6 +320,8 @@ class GeofenceEngine {
     final dwellTime = g.dwellTime ?? options.defaultDwellTime;
     final since = s.since;
     if (dwellTime == null || s.dwellNotified || since == null) return null;
+    // Wait while an exit is being confirmed: the device may already have left.
+    if (s.pendingStatus == GeofenceStatus.outside && s.pendingCount > 0) return null;
     if (time.difference(since) < dwellTime) return null;
     return GeofenceEvent(
       type: GeofenceEventType.dwell,

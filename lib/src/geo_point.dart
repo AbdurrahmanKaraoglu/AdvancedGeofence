@@ -1,3 +1,5 @@
+import 'json_util.dart';
+
 /// A geographic position, optionally with the accuracy and time of the fix.
 ///
 /// The same type is used for location readings (where [accuracy] and [time]
@@ -20,7 +22,9 @@ class GeoPoint {
   const GeoPoint(this.latitude, this.longitude, {this.accuracy, this.time});
 
   /// Creates a point from [toJson] output.
-  factory GeoPoint.fromJson(Map<String, Object?> json) {
+  ///
+  /// Throws a [FormatException] if [json] is malformed.
+  factory GeoPoint.fromJson(Map<String, Object?> json) => parseJson('point', () {
     final time = json['time'];
     return GeoPoint(
       (json['lat'] as num).toDouble(),
@@ -28,7 +32,7 @@ class GeoPoint {
       accuracy: (json['accuracy'] as num?)?.toDouble(),
       time: time is num ? DateTime.fromMillisecondsSinceEpoch(time.toInt(), isUtc: true) : null,
     );
-  }
+  });
 
   /// Latitude in degrees, -90 to 90.
   final double latitude;

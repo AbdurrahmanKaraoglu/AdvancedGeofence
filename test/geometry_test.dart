@@ -192,6 +192,51 @@ void main() {
       );
     });
 
+    test('points on a vertex or an edge are inside', () {
+      expect(square.contains(square.vertices[2]), isTrue);
+      expect(square.signedDistance(square.vertices[2]), closeTo(0, 1e-6));
+      final onEdge = GeoPoint(square.vertices[0].latitude, istanbul.longitude);
+      expect(square.contains(onEdge), isTrue);
+      expect(square.signedDistance(onEdge), closeTo(0, 1e-6));
+    });
+
+    test('repeated vertices are harmless', () {
+      final p = PolygonGeofence(
+        id: 'dup',
+        vertices: const [
+          GeoPoint(0, 0),
+          GeoPoint(0, 0),
+          GeoPoint(0, 1),
+          GeoPoint(1, 1),
+          GeoPoint(1, 1),
+          GeoPoint(1, 0),
+        ],
+      );
+      expect(p.contains(const GeoPoint(0.5, 0.5)), isTrue);
+      expect(p.contains(const GeoPoint(1.5, 0.5)), isFalse);
+    });
+
+    test('longitudes beyond 180 are wrapped', () {
+      final p = PolygonGeofence(
+        id: 'wrapped',
+        vertices: const [GeoPoint(-16, 179.5), GeoPoint(-16, 180.5), GeoPoint(-17, 180.5), GeoPoint(-17, 179.5)],
+      );
+      expect(p.contains(const GeoPoint(-16.5, -179.9)), isTrue);
+      expect(p.contains(const GeoPoint(-16.5, 179.9)), isTrue);
+      expect(p.contains(const GeoPoint(-16.5, 178)), isFalse);
+    });
+
+    test('rejects polygons without area', () {
+      expect(
+        () => PolygonGeofence(id: 'line', vertices: const [GeoPoint(0, 0), GeoPoint(1, 1), GeoPoint(2, 2)]),
+        throwsArgumentError,
+      );
+      expect(
+        () => PolygonGeofence(id: 'dot', vertices: const [GeoPoint(1, 1), GeoPoint(1, 1), GeoPoint(1, 1)]),
+        throwsArgumentError,
+      );
+    });
+
     test('rejects fewer than three vertices', () {
       expect(() => PolygonGeofence(id: 'x', vertices: const [GeoPoint(0, 0), GeoPoint(1, 1)]), throwsArgumentError);
     });
@@ -232,8 +277,19 @@ void main() {
       expect(Geofence.fromJson(p.toJson()).toJson(), p.toJson());
     });
 
-    test('unknown type throws', () {
+    test('unknown type and malformed JSON throw a FormatException', () {
       expect(() => Geofence.fromJson({'type': 'hexagon', 'id': 'x'}), throwsFormatException);
+      expect(() => Geofence.fromJson({'type': 'circle', 'id': 'x'}), throwsFormatException);
+      expect(
+        () => Geofence.fromJson({
+          'type': 'circle',
+          'id': 'x',
+          'center': {'lat': 0, 'lng': 0},
+          'radius': -5,
+        }),
+        throwsFormatException,
+      );
+      expect(() => GeoPoint.fromJson({'lat': 1}), throwsFormatException);
     });
 
     test('GeoPoint round trip', () {

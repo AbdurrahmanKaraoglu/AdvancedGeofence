@@ -12,3 +12,7 @@ flutter run
 ```
 
 Bölgeler, motor durumu ve olaylar dosyalara yazılır. Böylece arka plan isolate'i yeniden başladığında olaylar tekrarlanmadan kaldığı yerden devam edilir.
+
+To try it without walking around, play a simulated route on the emulator with [route_simulator](https://pub.dev/packages/route_simulator) (`dart run route_simulator:emulator --demo --realistic --device emulator-5554`) and add a zone along the way.
+
+Dışarı çıkmadan denemek için emülatörde [route_simulator](https://pub.dev/packages/route_simulator) ile simüle edilmiş bir rota oynatın ve yol üzerine bir bölge ekleyin.

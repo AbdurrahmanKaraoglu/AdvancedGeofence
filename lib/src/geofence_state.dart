@@ -1,4 +1,5 @@
 import 'geo_point.dart';
+import 'json_util.dart';
 
 /// Where the device is relative to one geofence.
 enum GeofenceStatus {
@@ -25,13 +26,20 @@ class GeofenceRegionState {
   });
 
   /// Recreates a state from [toJson] output.
-  factory GeofenceRegionState.fromJson(Map<String, Object?> json) => GeofenceRegionState(
-    status: GeofenceStatus.values.byName(json['status'] as String? ?? 'unknown'),
-    since: _time(json['since']),
-    dwellNotified: json['dwellNotified'] == true,
-    pendingStatus: json['pendingStatus'] == null ? null : GeofenceStatus.values.byName(json['pendingStatus'] as String),
-    pendingCount: (json['pendingCount'] as num?)?.toInt() ?? 0,
-    pendingSince: _time(json['pendingSince']),
+  ///
+  /// Throws a [FormatException] if [json] is malformed.
+  factory GeofenceRegionState.fromJson(Map<String, Object?> json) => parseJson(
+    'geofence region state',
+    () => GeofenceRegionState(
+      status: GeofenceStatus.values.byName(json['status'] as String? ?? 'unknown'),
+      since: _time(json['since']),
+      dwellNotified: json['dwellNotified'] == true,
+      pendingStatus: json['pendingStatus'] == null
+          ? null
+          : GeofenceStatus.values.byName(json['pendingStatus'] as String),
+      pendingCount: (json['pendingCount'] as num?)?.toInt() ?? 0,
+      pendingSince: _time(json['pendingSince']),
+    ),
   );
 
   /// The confirmed status.
@@ -81,9 +89,12 @@ class GeofenceEngineState {
   /// Creates a state.
   const GeofenceEngineState({this.lastPoint, this.regions = const {}});
 
-  /// Recreates a state from [toJson] output. Unknown versions throw a
-  /// [FormatException].
-  factory GeofenceEngineState.fromJson(Map<String, Object?> json) {
+  /// Recreates a state from [toJson] output.
+  ///
+  /// Malformed input and unknown versions throw a [FormatException], so a
+  /// damaged file can be caught and monitoring started fresh. Later versions
+  /// of this package keep reading states written by earlier ones.
+  factory GeofenceEngineState.fromJson(Map<String, Object?> json) => parseJson('geofence state', () {
     final version = json['version'];
     if (version != _version) {
       throw FormatException('Unsupported geofence state version: $version');
@@ -97,7 +108,7 @@ class GeofenceEngineState {
           entry.key as String: GeofenceRegionState.fromJson((entry.value as Map).cast<String, Object?>()),
       },
     );
-  }
+  });
 
   static const int _version = 1;
 

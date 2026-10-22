@@ -235,6 +235,26 @@ void main() {
       expect(feed(e, [r(300, 100), r(300, 200)]), isEmpty);
     });
 
+    test('no dwell while an exit is being confirmed', () {
+      final e = dwellEngine();
+      feed(e, [r(0, 0), r(0, 1)]);
+      expect(names(e.process(r(300, 60))), isEmpty, reason: 'first outside reading: exit pending');
+      expect(names(e.process(r(300, 61))), ['exit:home'], reason: 'left before a dwell could be confirmed');
+    });
+
+    test('a dwell held back by a GPS spike is emitted once the spike is over', () {
+      final e = dwellEngine();
+      feed(e, [r(0, 0), r(0, 1)]);
+      expect(names(e.process(r(1000, 60))), isEmpty);
+      expect(names(e.process(r(0, 61))), ['dwell:home']);
+    });
+
+    test('advanceTime holds back the dwell while an exit is pending', () {
+      final e = dwellEngine();
+      feed(e, [r(0, 0), r(0, 1), r(300, 30)]);
+      expect(e.advanceTime(at(90)), isEmpty);
+    });
+
     test('ambiguous readings while inside keep the dwell running', () {
       final e = dwellEngine();
       feed(e, [r(0, 0), r(0, 1)]);
@@ -314,6 +334,55 @@ void main() {
 
     test('unsupported state versions throw', () {
       expect(() => GeofenceEngineState.fromJson({'version': 99}), throwsFormatException);
+      expect(() => GeofenceEngineState.fromJson({}), throwsFormatException);
+    });
+
+    test('malformed state throws a FormatException', () {
+      expect(
+        () => GeofenceEngineState.fromJson({
+          'version': 1,
+          'regions': {
+            'a': {'status': 'sideways'},
+          },
+        }),
+        throwsFormatException,
+      );
+      expect(
+        () => GeofenceEngineState.fromJson({
+          'version': 1,
+          'lastPoint': {'lat': 'x', 'lng': 0},
+        }),
+        throwsFormatException,
+      );
+      expect(() => GeofenceEngineState.fromJson({'version': 1, 'regions': 'none'}), throwsFormatException);
+      expect(() => GeofenceEvent.fromJson({}), throwsFormatException);
+    });
+
+    test('reads the version 1 format', () {
+      // Saved by advanced_geofence 0.1.0; later versions must keep reading it.
+      const saved =
+          '{"version":1,"lastPoint":{"lat":41.0082,"lng":28.9784,"accuracy":8.0,"time":1792659600000},'
+          '"regions":{"home":{"status":"inside","since":1792659590000,"dwellNotified":true},'
+          '"far":{"status":"outside","since":1792659500000,"pendingStatus":"inside","pendingCount":1,'
+          '"pendingSince":1792659600000}}}';
+      final state = GeofenceEngineState.fromJson(jsonDecode(saved) as Map<String, Object?>);
+      expect(state.lastPoint!.time, DateTime.fromMillisecondsSinceEpoch(1792659600000, isUtc: true));
+      expect(state.regions['home']!.status, GeofenceStatus.inside);
+      expect(state.regions['home']!.dwellNotified, isTrue);
+      expect(state.regions['far']!.pendingStatus, GeofenceStatus.inside);
+      expect(state.regions['far']!.pendingCount, 1);
+      expect(jsonEncode(state.toJson()), saved);
+    });
+
+    test('a restored last reading far in the future does not block new readings', () {
+      final saved = GeofenceEngineState(lastPoint: GeoPoint(home.latitude, home.longitude, time: at(3600)));
+      final e = GeofenceEngine(
+        geofences: [CircleGeofence(id: 'home', center: home, radius: 100)],
+        state: saved,
+        clock: () => at(0),
+      );
+      expect(e.process(r(0, 0)).accepted, isTrue, reason: 'the device clock was set back');
+      expect(e.process(r(0, -10)).ignoredReason, IgnoreReason.outOfOrder);
     });
 
     test('removeGeofence forgets the state without an exit', () {

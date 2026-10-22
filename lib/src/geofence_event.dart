@@ -1,5 +1,6 @@
 import 'geo_point.dart';
 import 'geofence.dart';
+import 'json_util.dart';
 
 /// The kind of a [GeofenceEvent].
 enum GeofenceEventType {
@@ -28,14 +29,19 @@ class GeofenceEvent {
 
   /// Recreates an event from [toJson] output, e.g. after it was sent to the
   /// UI isolate through a `SendPort`.
-  factory GeofenceEvent.fromJson(Map<String, Object?> json) => GeofenceEvent(
-    type: GeofenceEventType.values.byName(json['type'] as String),
-    geofence: Geofence.fromJson((json['geofence'] as Map).cast<String, Object?>()),
-    point: GeoPoint.fromJson((json['point'] as Map).cast<String, Object?>()),
-    time: DateTime.fromMillisecondsSinceEpoch((json['time'] as num).toInt(), isUtc: true),
-    since: DateTime.fromMillisecondsSinceEpoch((json['since'] as num).toInt(), isUtc: true),
-    distance: (json['distance'] as num).toDouble(),
-    initial: json['initial'] == true,
+  ///
+  /// Throws a [FormatException] if [json] is malformed.
+  factory GeofenceEvent.fromJson(Map<String, Object?> json) => parseJson(
+    'geofence event',
+    () => GeofenceEvent(
+      type: GeofenceEventType.values.byName(json['type'] as String),
+      geofence: Geofence.fromJson((json['geofence'] as Map).cast<String, Object?>()),
+      point: GeoPoint.fromJson((json['point'] as Map).cast<String, Object?>()),
+      time: DateTime.fromMillisecondsSinceEpoch((json['time'] as num).toInt(), isUtc: true),
+      since: DateTime.fromMillisecondsSinceEpoch((json['since'] as num).toInt(), isUtc: true),
+      distance: (json['distance'] as num).toDouble(),
+      initial: json['initial'] == true,
+    ),
   );
 
   /// What happened.
