@@ -1,3 +1,11 @@
+## 0.1.2
+
+### English
+- DOCS: README lists the author's other packages (11 packages, with pub.dev links).
+
+### Türkçe
+- DOCS: README'de geliştiricinin diğer paketleri listeleniyor (11 paket, pub.dev bağlantılarıyla).
+
 ## 0.1.1
 
 ### English

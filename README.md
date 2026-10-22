@@ -46,7 +46,7 @@ Because the engine is pure Dart, you can run it inside a background location cal
 
 ```yaml
 dependencies:
-  advanced_geofence: ^0.1.1
+  advanced_geofence: ^0.1.2
 ```
 
 ## Usage
@@ -232,6 +232,22 @@ This package does not request locations or permissions; your location source doe
 - start background tracking;
 - see the enter/exit/dwell events, also with the app in the background.
 
+## Other packages
+
+More packages by the same author:
+
+- [google_maps_polyline](https://pub.dev/packages/google_maps_polyline): Google Directions routes and polyline encode/decode (pure Dart)
+- [marker_crafter](https://pub.dev/packages/marker_crafter): Custom Google Maps markers drawn with Canvas
+- [animated_route_marker](https://pub.dev/packages/animated_route_marker): Smoothly animated map marker along a route or live GPS
+- [advanced_background_locator](https://pub.dev/packages/advanced_background_locator): Background location tracking plugin (Android/iOS)
+- [route_simulator](https://pub.dev/packages/route_simulator): Realistic fake GPS streams for testing and demos
+- [background_doctor](https://pub.dev/packages/background_doctor): Diagnoses why background work stops on Android and why the app was killed
+- [scan_tally](https://pub.dev/packages/scan_tally): Continuous barcode scanning for stock counts: dedupe, tally, feedback, GS1
+- [scan_tally_mobile_scanner](https://pub.dev/packages/scan_tally_mobile_scanner): mobile_scanner camera adapter for scan_tally
+- [turkish_kit](https://pub.dev/packages/turkish_kit): Turkish validators, money in words, casing, provinces, holidays (pure Dart)
+- [turkish_kit_flutter](https://pub.dev/packages/turkish_kit_flutter): Flutter widgets for turkish_kit: Turkish money field and input formatters
+- [flutter_toastify](https://pub.dev/packages/flutter_toastify): Animated toast notifications
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
@@ -361,6 +377,22 @@ Bu paket konum ya da izin istemez; bunu konum kaynağınız yapar.
 - **Arka plan konumu:** Android 10+ ve iOS'ta "Her zaman izin ver" gerekir. Android 12+'da ön plan servisi uygulama görünürken başlatılmalıdır. Google Play ve App Store arka plan konum kullanımını inceler, bu yüzden özelliği kullanıcıya açıklayın.
 - **Pil:** pili harcayan motor değil, sürekli GPS'tir. Doğruluğu ve aralığı bölgelerinizin izin verdiği kadar düşük tutun (örneğin 100 m'lik bölgeler için 10–20 m mesafe filtresi). Etkin bölge yokken takibi durdurun.
 - **Üretici pil tasarrufu:** Xiaomi, Huawei, Samsung gibi üreticilerin pil tasarrufu servisleri arka plan servisini öldürebilir. Servis durursa konum yeniden gelene kadar olay üretilmez. Yeniden başladıktan sonraki ilk okumalarda (`confirmations` kadar) motor nerede olduğunuzu görür ve kaçırılan `enter`/`exit` olayını üretir.
+
+### Diğer paketler
+
+Aynı geliştiricinin diğer paketleri:
+
+- [google_maps_polyline](https://pub.dev/packages/google_maps_polyline): Google Directions rotası ve polyline kodlama/çözme (saf Dart)
+- [marker_crafter](https://pub.dev/packages/marker_crafter): Canvas ile çizilen özel Google Maps işaretçileri
+- [animated_route_marker](https://pub.dev/packages/animated_route_marker): Rota ya da canlı GPS üzerinde akıcı hareket eden harita işaretçisi
+- [advanced_background_locator](https://pub.dev/packages/advanced_background_locator): Arka planda konum takibi eklentisi (Android/iOS)
+- [route_simulator](https://pub.dev/packages/route_simulator): Test ve demo için gerçekçi sahte GPS akışı
+- [background_doctor](https://pub.dev/packages/background_doctor): Android'de arka plan işinin neden durduğunu ve uygulamanın neden kapandığını teşhis eder
+- [scan_tally](https://pub.dev/packages/scan_tally): Stok sayımı için sürekli barkod okutma: tekrar ayıklama, sayım, geri bildirim, GS1
+- [scan_tally_mobile_scanner](https://pub.dev/packages/scan_tally_mobile_scanner): scan_tally için mobile_scanner kamera adaptörü
+- [turkish_kit](https://pub.dev/packages/turkish_kit): Türkçe doğrulayıcılar, tutarı yazıyla yazma, harf dönüşümü, il/ilçe, tatiller (saf Dart)
+- [turkish_kit_flutter](https://pub.dev/packages/turkish_kit_flutter): turkish_kit için Flutter bileşenleri: Türk biçimli para alanı ve girdi biçimleyicileri
+- [flutter_toastify](https://pub.dev/packages/flutter_toastify): Animasyonlu toast bildirimleri
 
 ### Lisans
 

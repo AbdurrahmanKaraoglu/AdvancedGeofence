@@ -1,6 +1,6 @@
 name: advanced_geofence
 description: "Pure Dart geofencing engine: enter, exit and dwell events for circle and polygon zones from any location stream, with noise filters and saveable state."
-version: 0.1.1
+version: 0.1.2
 homepage: "https://github.com/AbdurrahmanKaraoglu/AdvancedGeofence"
 repository: "https://github.com/AbdurrahmanKaraoglu/AdvancedGeofence"
 issue_tracker: "https://github.com/AbdurrahmanKaraoglu/AdvancedGeofence/issues"
